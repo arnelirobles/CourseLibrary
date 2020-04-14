@@ -1,9 +1,6 @@
 ﻿using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CourseLibrary.API.Controllers
 {
@@ -15,22 +12,33 @@ namespace CourseLibrary.API.Controllers
 
         public AuthorsController(ICourseLibraryRepository courseLibraryRepository)
         {
-            _courseLibraryRepository = courseLibraryRepository ?? 
+            _courseLibraryRepository = courseLibraryRepository ??
                 throw new ArgumentNullException(nameof(CourseLibraryRepository));
         }
 
-        [HttpGet("")] 
+        [HttpGet("")]
         public IActionResult GetAuthors()
         {
             var authors = _courseLibraryRepository.GetAuthors();
-            return new JsonResult(authors);
+            return Ok(authors);
         }
 
-        [HttpGet ("{authorId}")]
+        [HttpGet("{authorId}")]
         public IActionResult GetAuthor(Guid authorId)
         {
+            //if (!_courseLibraryRepository.AuthorExists(authorId))
+            //{
+            //    return NotFound();
+            //}
+
             var author = _courseLibraryRepository.GetAuthor(authorId);
-            return new JsonResult(author);
+
+            if (author == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(author);
         }
     }
 }
