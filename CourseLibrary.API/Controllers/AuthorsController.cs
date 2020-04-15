@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CourseLibrary.API.Entities;
 using CourseLibrary.API.Models;
 using CourseLibrary.API.ResourceParameters;
 using CourseLibrary.API.Services;
@@ -32,14 +33,9 @@ namespace CourseLibrary.API.Controllers
             return Ok(authors);
         }
 
-        [HttpGet("{authorId}")]
+        [HttpGet("{authorId}", Name = "GetAuthor")]
         public ActionResult<AuthorDto> GetAuthor(Guid authorId)
         {
-            //if (!_courseLibraryRepository.AuthorExists(authorId))
-            //{
-            //    return NotFound();
-            //}
-
             var author = _mapper.Map<AuthorDto>(_courseLibraryRepository.GetAuthor(authorId));
 
             if (author == null)
@@ -48,6 +44,18 @@ namespace CourseLibrary.API.Controllers
             }
 
             return Ok(author);
+        }
+
+        [HttpPost]
+        public ActionResult<AuthorDto> CreateAuthor([FromBody] AuthorCreationDto author)
+        {
+            var authorEntity = _mapper.Map<Author>(author);
+            _courseLibraryRepository.AddAuthor(authorEntity);
+            _courseLibraryRepository.Save();
+
+            var authorDto = _mapper.Map<AuthorDto>(authorEntity);
+
+            return CreatedAtRoute("GetAuthor", new { authorId = authorDto.Id }, authorDto);
         }
     }
 }
