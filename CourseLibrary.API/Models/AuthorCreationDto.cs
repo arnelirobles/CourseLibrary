@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace CourseLibrary.API.Models
@@ -19,5 +20,8 @@ namespace CourseLibrary.API.Models
         [Required]
         [MaxLength(50)]
         public string MainCategory { get; set; }
+
+        public ICollection<CourseCreationDto> Courses { get; set; }
+            = new List<CourseCreationDto>();
     }
 }

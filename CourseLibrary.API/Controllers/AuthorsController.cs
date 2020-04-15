@@ -33,7 +33,7 @@ namespace CourseLibrary.API.Controllers
             return Ok(authors);
         }
 
-        [HttpGet("{authorId}", Name = "GetAuthor")]
+        [HttpGet("{authorId}", Name = nameof(GetAuthor))]
         public ActionResult<AuthorDto> GetAuthor(Guid authorId)
         {
             var author = _mapper.Map<AuthorDto>(_courseLibraryRepository.GetAuthor(authorId));
@@ -55,7 +55,7 @@ namespace CourseLibrary.API.Controllers
 
             var authorDto = _mapper.Map<AuthorDto>(authorEntity);
 
-            return CreatedAtRoute("GetAuthor", new { authorId = authorDto.Id }, authorDto);
+            return CreatedAtRoute(nameof(GetAuthor), new { authorId = authorDto.Id }, authorDto);
         }
     }
 }
