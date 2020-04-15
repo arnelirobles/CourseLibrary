@@ -1,4 +1,5 @@
 ﻿using CourseLibrary.API.Entities;
+using CourseLibrary.API.ResourceParameters;
 using System;
 using System.Collections.Generic;
 
@@ -21,6 +22,8 @@ namespace CourseLibrary.API.Services
         Author GetAuthor(Guid authorId);
 
         IEnumerable<Author> GetAuthors(IEnumerable<Guid> authorIds);
+
+        IEnumerable<Author> GetAuthors(AuthorsResourceParameters resourceParameters);
 
         void AddAuthor(Author author);
 

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CourseLibrary.API.Models;
+using CourseLibrary.API.ResourceParameters;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -22,10 +23,11 @@ namespace CourseLibrary.API.Controllers
                 throw new ArgumentNullException(nameof(mapper));
         }
 
-        [HttpGet("")]
-        public ActionResult<IEnumerable<AuthorDto>> GetAuthors()
+        [HttpGet]
+        [HttpHead]
+        public ActionResult<IEnumerable<AuthorDto>> GetAuthors([FromQuery] AuthorsResourceParameters resourceParameters)
         {
-            var authors = _mapper.Map<IEnumerable<AuthorDto>>(_courseLibraryRepository.GetAuthors());
+            var authors = _mapper.Map<IEnumerable<AuthorDto>>(_courseLibraryRepository.GetAuthors(resourceParameters));
 
             return Ok(authors);
         }
