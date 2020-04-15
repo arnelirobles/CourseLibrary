@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CourseLibrary.API.Models
 {
-    [CourseTitleMustBeDifferentFromDescription]
+    [CourseTitleMustBeDifferentFromDescription(ErrorMessage = "The Description must not be the same with Title.")]
     public class CourseCreationDto //: IValidatableObject
     {
         [Required(ErrorMessage = "Kindly fill out title.")]

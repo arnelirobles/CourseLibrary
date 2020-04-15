@@ -13,7 +13,7 @@ namespace CourseLibrary.API.ValidationAttributes
 
             if (course.Title == course.Description)
             {
-                return new ValidationResult("The Description must not be the same with Title.",
+                return new ValidationResult(ErrorMessage,
                     new[] { nameof(CourseCreationDto) });
             }
 
