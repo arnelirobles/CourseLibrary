@@ -4,6 +4,10 @@ using CourseLibrary.API.Models;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 
@@ -114,7 +118,23 @@ namespace CourseLibrary.API.Controllers
 
             if (courseFromRepo == null)
             {
-                return NotFound();
+                var courseDto = new CourseUpdateDto();
+                patchDocument.ApplyTo(courseDto, ModelState) ;
+
+                if (!TryValidateModel(courseDto))
+                {
+                    return ValidationProblem(ModelState);
+                }
+
+                var courseToAdd = _mapper.Map<Course>(courseDto);
+                courseToAdd.Id = courseId;
+
+                _courseLibraryRepository.AddCourse(authorId, courseToAdd);
+                _courseLibraryRepository.Save();
+
+                var courseToReturn = _mapper.Map<CourseDto>(courseToAdd);
+                return CreatedAtRoute(nameof(GetCourseForAuthor), new { authorId, courseId = courseToReturn.Id }, courseToReturn);
+                //return NotFound();
             }
 
             var courseToPatch = _mapper.Map<CourseUpdateDto>(courseFromRepo);
@@ -133,6 +153,14 @@ namespace CourseLibrary.API.Controllers
             _courseLibraryRepository.Save();
 
             return NoContent();
+        }
+
+        public override ActionResult ValidationProblem([ActionResultObjectValue] ModelStateDictionary modelStateDictionary)
+        {
+            var options = HttpContext.RequestServices
+                .GetRequiredService<IOptions<ApiBehaviorOptions>>();
+
+            return (ActionResult)options.Value.InvalidModelStateResponseFactory(ControllerContext);
         }
 
     }
