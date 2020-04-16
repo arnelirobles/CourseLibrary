@@ -11,6 +11,7 @@ namespace CourseLibrary.API.Profiles
             CreateMap<Course, CourseDto>();
             CreateMap<CourseCreationDto, Course>();
             CreateMap<CourseUpdateDto, Course>();
+            CreateMap<Course, CourseUpdateDto>();
         }
     }
 }
