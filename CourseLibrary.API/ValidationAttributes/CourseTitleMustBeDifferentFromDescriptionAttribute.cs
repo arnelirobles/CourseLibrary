@@ -9,12 +9,12 @@ namespace CourseLibrary.API.ValidationAttributes
     {
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
-            var course = (CourseCreationDto)validationContext.ObjectInstance;
+            var course = (CourseManipulateDto)validationContext.ObjectInstance;
 
             if (course.Title == course.Description)
             {
                 return new ValidationResult(ErrorMessage,
-                    new[] { nameof(CourseCreationDto) });
+                    new[] { nameof(CourseManipulateDto) });
             }
 
             return ValidationResult.Success;

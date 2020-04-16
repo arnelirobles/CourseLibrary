@@ -72,5 +72,27 @@ namespace CourseLibrary.API.Controllers
             return CreatedAtRoute("GetCourseForAuthor", 
                 new { authorId = courseDto.AuthorId, courseId = courseDto.Id }, courseDto);
         }
+
+        [HttpPut("{courseId}",Name = nameof(UpdateCourseForAuthor))]
+        public ActionResult UpdateCourseForAuthor(Guid authorId, Guid courseId, CourseUpdateDto course)
+        {
+            if (!_courseLibraryRepository.AuthorExists(authorId))
+            {
+                return NotFound();
+            }
+
+            var courseFromRepo = _courseLibraryRepository.GetCourse(authorId, courseId);
+
+            if(courseFromRepo == null)
+            {
+                return NotFound();
+            }
+
+            _mapper.Map(course, courseFromRepo);
+            _courseLibraryRepository.UpdateCourse(courseFromRepo);
+            _courseLibraryRepository.Save();
+
+            return NoContent();
+        }
     }
 }
