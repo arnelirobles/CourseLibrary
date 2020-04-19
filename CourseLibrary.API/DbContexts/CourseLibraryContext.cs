@@ -1,10 +1,11 @@
 ﻿using CourseLibrary.API.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 
 namespace CourseLibrary.API.DbContexts
 {
-    public class CourseLibraryContext : DbContext
+    public class CourseLibraryContext : IdentityDbContext
     {
         public CourseLibraryContext(DbContextOptions<CourseLibraryContext> options)
            : base(options)
