@@ -3,6 +3,7 @@ using CourseLibrary.API.Entities;
 using CourseLibrary.API.Models;
 using CourseLibrary.API.ResourceParameters;
 using CourseLibrary.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -13,6 +14,7 @@ using System.Collections.Generic;
 
 namespace CourseLibrary.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/authors")]
     public class AuthorsController : ControllerBase

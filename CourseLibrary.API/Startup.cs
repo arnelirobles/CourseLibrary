@@ -1,6 +1,10 @@
 using AutoMapper;
 using CourseLibrary.API.DbContexts;
+using CourseLibrary.API.Defaults;
+using CourseLibrary.API.Helpers;
 using CourseLibrary.API.Services;
+using IdentityServer4.EntityFramework.DbContexts;
+using IdentityServer4.EntityFramework.Mappers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -14,6 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Linq;
 
 namespace CourseLibrary.API
 {
@@ -35,8 +40,15 @@ namespace CourseLibrary.API
                     @"Server=(localdb)\mssqllocaldb;Database=CourseLibraryDB;Trusted_Connection=True;");
             });
 
-            services.AddIdentity<IdentityUser, IdentityRole>()
-                .AddEntityFrameworkStores<CourseLibraryContext>();
+            //services.AddIdentity<IdentityUser, IdentityRole>()
+            //    .AddEntityFrameworkStores<CourseLibraryContext>();
+
+             services.ConfigAspNetIdentity()
+                .ConfigIdentityServer()
+                .InstallCertificate()
+                .ConfigAuthentication()
+                .ConfigDatasource();
+
             services.AddControllers(setupAction => setupAction.ReturnHttpNotAcceptable = true)
                  
                  .AddNewtonsoftJson(setupAction =>
@@ -85,9 +97,11 @@ namespace CourseLibrary.API
                  });
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
+            services.RegisterServices();
+            services.AddMvc();
             services.AddScoped<ICourseLibraryRepository, CourseLibraryRepository>();
             services.AddScoped<IAccountRepository, AccountRepository>();
+
 
 
         }
@@ -95,6 +109,7 @@ namespace CourseLibrary.API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            Migrate(app);
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -115,7 +130,9 @@ namespace CourseLibrary.API
 
             app.UseRouting();
 
-            app.UseAuthentication();
+            app.UseIdentityServer();
+
+            //app.UseAuthentication();
 
             app.UseAuthorization();
 
@@ -123,6 +140,46 @@ namespace CourseLibrary.API
             {
                 endpoints.MapControllers();
             });
+        }
+
+        public void Migrate(IApplicationBuilder application)
+        {
+            using(var scope = application.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            {
+                scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>().Database.Migrate();
+
+                var context = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+
+                context.Database.Migrate();
+
+                if (!context.Clients.Any())
+                {
+                   foreach(var client in IdentityDefaults.GetClients())
+                    {
+                        context.Clients.Add(client.ToEntity());
+                    }
+
+                    context.SaveChanges();
+                }
+
+                if (!context.ApiResources.Any())
+                {
+                    foreach(var aipResource in IdentityDefaults.GetApiResources())
+                    {
+                        context.ApiResources.Add(aipResource.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+
+                if (!context.IdentityResources.Any())
+                {
+                    foreach(var idResource in IdentityDefaults.GetIdentityResources())
+                    {
+                        context.IdentityResources.Add(idResource.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+            }
         }
     }
 }
