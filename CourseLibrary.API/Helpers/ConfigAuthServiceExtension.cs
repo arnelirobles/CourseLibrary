@@ -1,4 +1,5 @@
 ﻿using CourseLibrary.API.DbContexts;
+using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -29,6 +30,8 @@ namespace CourseLibrary.API.Helpers
                 .AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<CourseLibraryContext>()
                 .AddDefaultTokenProviders();
+
+             
 
         
 
@@ -77,9 +80,10 @@ namespace CourseLibrary.API.Helpers
                         b.UseSqlServer(clientConnection, c=>c.MigrationsAssembly("CourseLibrary.API"));
 
                     options.EnableTokenCleanup = true;
-                })
-           
-                .AddAspNetIdentity<IdentityUser>();
+                })          
+                .AddAspNetIdentity<IdentityUser>()
+                .AddProfileService<ProfileService>();
+            
 
             addOption?.Invoke(identityBuilder);
             builder.IdentityServerBuilder = identityBuilder;

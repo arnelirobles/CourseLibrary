@@ -1,10 +1,13 @@
 using AutoMapper;
 using CourseLibrary.API.DbContexts;
 using CourseLibrary.API.Defaults;
+using CourseLibrary.API.ExtensionGrants;
 using CourseLibrary.API.Helpers;
 using CourseLibrary.API.Services;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Mappers;
+using IdentityServer4.Services;
+using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -37,7 +40,7 @@ namespace CourseLibrary.API
             services.AddDbContext<CourseLibraryContext>(options =>
             {
                 options.UseSqlServer(
-                    @"Server=(localdb)\mssqllocaldb;Database=CourseLibraryDB;Trusted_Connection=True;");
+                    Configuration.GetConnectionString("ClientConnection"));
             });
 
             //services.AddIdentity<IdentityUser, IdentityRole>()
@@ -97,10 +100,12 @@ namespace CourseLibrary.API
                  });
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddTransient<IProfileService, ProfileService>();
             services.RegisterServices();
             services.AddMvc();
             services.AddScoped<ICourseLibraryRepository, CourseLibraryRepository>();
             services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<IExtensionGrantValidator, DelegationGrantValidator>();
 
 
 
@@ -132,7 +137,7 @@ namespace CourseLibrary.API
 
             app.UseIdentityServer();
 
-            //app.UseAuthentication();
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
@@ -144,7 +149,7 @@ namespace CourseLibrary.API
 
         public void Migrate(IApplicationBuilder application)
         {
-            using(var scope = application.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            using (var scope = application.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
                 scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>().Database.Migrate();
 
@@ -154,7 +159,7 @@ namespace CourseLibrary.API
 
                 if (!context.Clients.Any())
                 {
-                   foreach(var client in IdentityDefaults.GetClients())
+                    foreach (var client in IdentityDefaults.GetClients())
                     {
                         context.Clients.Add(client.ToEntity());
                     }
@@ -164,7 +169,7 @@ namespace CourseLibrary.API
 
                 if (!context.ApiResources.Any())
                 {
-                    foreach(var aipResource in IdentityDefaults.GetApiResources())
+                    foreach (var aipResource in IdentityDefaults.GetApiResources())
                     {
                         context.ApiResources.Add(aipResource.ToEntity());
                     }
@@ -173,7 +178,7 @@ namespace CourseLibrary.API
 
                 if (!context.IdentityResources.Any())
                 {
-                    foreach(var idResource in IdentityDefaults.GetIdentityResources())
+                    foreach (var idResource in IdentityDefaults.GetIdentityResources())
                     {
                         context.IdentityResources.Add(idResource.ToEntity());
                     }

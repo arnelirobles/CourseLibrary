@@ -3,14 +3,19 @@ using IdentityServer4.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace CourseLibrary.API.Defaults
 {
     public static class IdentityDefaults
     {
+        
         public static List<Client> GetClients()
         {
+            var gt = new List<string>();
+            gt.AddRange(GrantTypes.ResourceOwnerPassword.ToList());
+            gt.Add("delegation");
             return new List<Client>
             {
                 new Client
@@ -18,7 +23,7 @@ namespace CourseLibrary.API.Defaults
                     ClientId = "APPLICABLENZ",
                     ClientName = "Admin Dashboard",
                     Description = "Dashboard application for the Courses API",
-                    AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
+                    AllowedGrantTypes = gt,
                     AccessTokenType = AccessTokenType.Reference,
                     AllowedScopes = {
                         IdentityServerConstants.StandardScopes.OpenId,
@@ -41,7 +46,7 @@ namespace CourseLibrary.API.Defaults
             return new List<ApiResource>
             {
                 new ApiResource
-                {
+                { 
                     Name = "api",
                     Description = "Main Course API",
                     ApiSecrets =
@@ -78,7 +83,8 @@ namespace CourseLibrary.API.Defaults
             return new List<IdentityResource>
             {
                 new IdentityResources.OpenId(),
-                new IdentityResources.Profile()
+                new IdentityResources.Profile(),
+                new IdentityResources.Email()
             };
         }
     }
