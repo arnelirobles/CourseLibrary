@@ -11,11 +11,11 @@ namespace CourseLibrary.API.Services
         private Dictionary<string, PropertyMappingValue> _authorPropertyMapping =
             new Dictionary<string, PropertyMappingValue>(StringComparer.OrdinalIgnoreCase)
             {
-                {nameof(AuthorDto.Id), new PropertyMappingValue(new List<string>() {nameof(Author.Id)}) },
-                {nameof(AuthorDto.MainCategory), new PropertyMappingValue(new List<string>() {nameof(Author.MainCategory)}) },
-                {nameof(AuthorDto.Age), new PropertyMappingValue(new List<string>() {nameof(Author.DateOfBirth)},true) },
-                { nameof(AuthorDto.Name), new PropertyMappingValue(new List<string>() {nameof(Author.FirstName), nameof(Author.LastName) }) }
-            };
+               { "Id", new PropertyMappingValue(new List<string>() { "Id" } ) },
+               { "MainCategory", new PropertyMappingValue(new List<string>() { "MainCategory" } )},
+               { "Age", new PropertyMappingValue(new List<string>() { "DateOfBirth" } , true) },
+               { "Name", new PropertyMappingValue(new List<string>() { "FirstName", "LastName" }) }
+       };
 
         private IList<IPropertyMapping> _propertyMappings = new List<IPropertyMapping>();
 

@@ -96,7 +96,7 @@ namespace CourseLibrary.API.Controllers
         {
             var authorFromRepo = _courseLibraryRepository.GetAuthor(authorId);
 
-            if(authorFromRepo == null)
+            if (authorFromRepo == null)
             {
                 return NotFound();
             }
@@ -121,26 +121,31 @@ namespace CourseLibrary.API.Controllers
             {
                 case ResourceUriType.PreviousPage:
                     return Url.Link(nameof(GetAuthors),
-                        new 
+                        new
                         {
+                            orderBy = resourceParameters.OrderBy,
                             pageNumber = resourceParameters.PageNumber - 1,
                             pageSize = resourceParameters.PageSize,
                             mainCategory = resourceParameters.MainCategory,
                             searchQuery = resourceParameters.SearchQuery
                         });
+
                 case ResourceUriType.NextPage:
                     return Url.Link(nameof(GetAuthors),
                         new
                         {
+                            orderBy = resourceParameters.OrderBy,
                             pageNumber = resourceParameters.PageNumber + 1,
                             pageSize = resourceParameters.PageSize,
                             mainCategory = resourceParameters.MainCategory,
                             searchQuery = resourceParameters.SearchQuery
                         });
+
                 default:
                     return Url.Link(nameof(GetAuthors),
                         new
                         {
+                            orderBy = resourceParameters.OrderBy,
                             pageNumber = resourceParameters.PageNumber,
                             pageSize = resourceParameters.PageSize,
                             mainCategory = resourceParameters.MainCategory,
