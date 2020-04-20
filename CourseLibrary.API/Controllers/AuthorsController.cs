@@ -36,35 +36,42 @@ namespace CourseLibrary.API.Controllers
 
         [HttpGet(Name = nameof(GetAuthors))]
         [HttpHead]
-        public ActionResult<IEnumerable<AuthorDto>> GetAuthors(
+        public IActionResult GetAuthors(
             [FromQuery] AuthorsResourceParameters resourceParameters)
         {
-            if (!_propertyMappingService.ValidMappingExistsFor<AuthorDto, Author>(resourceParameters.OrderBy))
+            try
             {
-                return BadRequest();
+                if (!_propertyMappingService.ValidMappingExistsFor<AuthorDto, Author>(resourceParameters.OrderBy))
+                {
+                    return BadRequest();
+                }
+
+                var authorsEntity = _courseLibraryRepository.GetAuthors(resourceParameters);
+
+                var previousPageLink = authorsEntity.HasPrevious ?
+                    CreateAuthorsResourceUri(resourceParameters, ResourceUriType.PreviousPage) : null;
+
+                var nextPageLink = authorsEntity.HasNext ?
+                    CreateAuthorsResourceUri(resourceParameters, ResourceUriType.NextPage) : null;
+
+                var paginationMetadata = new
+                {
+                    totalCount = authorsEntity.TotalCount,
+                    pageSize = authorsEntity.PageSize,
+                    currentPage = authorsEntity.CurrentPage,
+                    totalPages = authorsEntity.Totalpages,
+                    previousPageLink,
+                    nextPageLink
+                };
+
+                Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
+
+                return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsEntity).ShapeData(resourceParameters.Fields));
             }
-
-            var authorsEntity = _courseLibraryRepository.GetAuthors(resourceParameters);
-
-            var previousPageLink = authorsEntity.HasPrevious ?
-                CreateAuthorsResourceUri(resourceParameters, ResourceUriType.PreviousPage) : null;
-
-            var nextPageLink = authorsEntity.HasNext ?
-                CreateAuthorsResourceUri(resourceParameters, ResourceUriType.NextPage) : null;
-
-            var paginationMetadata = new
+            catch (Exception ex)
             {
-                totalCount = authorsEntity.TotalCount,
-                pageSize = authorsEntity.PageSize,
-                currentPage = authorsEntity.CurrentPage,
-                totalPages = authorsEntity.Totalpages,
-                previousPageLink,
-                nextPageLink
-            };
-
-            Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
-
-            return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsEntity));
+                return BadRequest(ex);
+            }
         }
 
         [HttpGet("{authorId}", Name = nameof(GetAuthor))]
@@ -131,6 +138,7 @@ namespace CourseLibrary.API.Controllers
                     return Url.Link(nameof(GetAuthors),
                         new
                         {
+                            fields = resourceParameters.Fields,
                             orderBy = resourceParameters.OrderBy,
                             pageNumber = resourceParameters.PageNumber - 1,
                             pageSize = resourceParameters.PageSize,
@@ -142,6 +150,7 @@ namespace CourseLibrary.API.Controllers
                     return Url.Link(nameof(GetAuthors),
                         new
                         {
+                            fields = resourceParameters.Fields,
                             orderBy = resourceParameters.OrderBy,
                             pageNumber = resourceParameters.PageNumber + 1,
                             pageSize = resourceParameters.PageSize,
@@ -153,6 +162,7 @@ namespace CourseLibrary.API.Controllers
                     return Url.Link(nameof(GetAuthors),
                         new
                         {
+                            fields = resourceParameters.Fields,
                             orderBy = resourceParameters.OrderBy,
                             pageNumber = resourceParameters.PageNumber,
                             pageSize = resourceParameters.PageSize,
