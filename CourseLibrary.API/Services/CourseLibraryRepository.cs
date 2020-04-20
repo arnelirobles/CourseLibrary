@@ -1,5 +1,6 @@
 ﻿using CourseLibrary.API.DbContexts;
 using CourseLibrary.API.Entities;
+using CourseLibrary.API.Helpers;
 using CourseLibrary.API.ResourceParameters;
 using System;
 using System.Collections.Generic;
@@ -88,8 +89,6 @@ namespace CourseLibrary.API.Services
             _context.Authors.Add(author);
         }
 
-
-
         public bool AuthorExists(Guid authorId)
         {
             if (authorId == Guid.Empty)
@@ -125,18 +124,18 @@ namespace CourseLibrary.API.Services
             return _context.Authors.ToList<Author>();
         }
 
-        public IEnumerable<Author> GetAuthors(AuthorsResourceParameters resourceParameters)
+        public PagedList<Author> GetAuthors(AuthorsResourceParameters resourceParameters)
         {
             if (resourceParameters == null)
             {
                 throw new ArgumentNullException(nameof(resourceParameters));
             }
 
-            if (string.IsNullOrWhiteSpace(resourceParameters.MainCategory) &&
-                string.IsNullOrWhiteSpace(resourceParameters.SearchQuery))
-            {
-                return GetAuthors();
-            }
+            //if (string.IsNullOrWhiteSpace(resourceParameters.MainCategory) &&
+            //    string.IsNullOrWhiteSpace(resourceParameters.SearchQuery))
+            //{
+            //    return GetAuthors();
+            //}
             var collection = _context.Authors as IQueryable<Author>;
 
             if (!string.IsNullOrWhiteSpace(resourceParameters.MainCategory))
@@ -152,7 +151,19 @@ namespace CourseLibrary.API.Services
                     || c.LastName.Contains(searchQuery));
             }
 
-            return collection.ToList();
+            if (!string.IsNullOrWhiteSpace(resourceParameters.OrderBy))
+            {
+                if (resourceParameters.OrderBy.Equals("name", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    collection = collection.OrderBy(a => a.FirstName).ThenBy(a => a.LastName);
+                }
+              //  collection.ApplySort(resourceParameters.OrderBy,_mappingDictionary)
+            }
+
+            //collection = collection.Skip(resourceParameters.PageSize * (resourceParameters.PageNumber - 1))
+            //        .Take(resourceParameters.PageSize);
+
+            return PagedList<Author>.Create(collection, resourceParameters.PageNumber,resourceParameters.PageSize);
         }
 
         public IEnumerable<Author> GetAuthors(IEnumerable<Guid> authorIds)

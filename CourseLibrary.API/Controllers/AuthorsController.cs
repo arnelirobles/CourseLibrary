@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CourseLibrary.API.Entities;
+using CourseLibrary.API.Helpers;
 using CourseLibrary.API.Models;
 using CourseLibrary.API.ResourceParameters;
 using CourseLibrary.API.Services;
@@ -8,8 +9,10 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace CourseLibrary.API.Controllers
 {
@@ -28,13 +31,32 @@ namespace CourseLibrary.API.Controllers
                 throw new ArgumentNullException(nameof(mapper));
         }
 
-        [HttpGet]
+        [HttpGet(Name = nameof(GetAuthors))]
         [HttpHead]
-        public ActionResult<IEnumerable<AuthorDto>> GetAuthors([FromQuery] AuthorsResourceParameters resourceParameters)
+        public ActionResult<IEnumerable<AuthorDto>> GetAuthors(
+            [FromQuery] AuthorsResourceParameters resourceParameters)
         {
-            var authors = _mapper.Map<IEnumerable<AuthorDto>>(_courseLibraryRepository.GetAuthors(resourceParameters));
+            var authorsEntity = _courseLibraryRepository.GetAuthors(resourceParameters);
 
-            return Ok(authors);
+            var previousPageLink = authorsEntity.HasPrevious ?
+                CreateAuthorsResourceUri(resourceParameters, ResourceUriType.PreviousPage) : null;
+
+            var nextPageLink = authorsEntity.HasNext ?
+                CreateAuthorsResourceUri(resourceParameters, ResourceUriType.NextPage) : null;
+
+            var paginationMetadata = new
+            {
+                totalCount = authorsEntity.TotalCount,
+                pageSize = authorsEntity.PageSize,
+                currentPage = authorsEntity.CurrentPage,
+                totalPages = authorsEntity.Totalpages,
+                previousPageLink,
+                nextPageLink
+            };
+
+            Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
+
+            return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsEntity));
         }
 
         [HttpGet("{authorId}", Name = nameof(GetAuthor))]
@@ -91,6 +113,40 @@ namespace CourseLibrary.API.Controllers
                 .GetRequiredService<IOptions<ApiBehaviorOptions>>();
 
             return (ActionResult)options.Value.InvalidModelStateResponseFactory(ControllerContext);
+        }
+
+        private string CreateAuthorsResourceUri(AuthorsResourceParameters resourceParameters, ResourceUriType type)
+        {
+            switch (type)
+            {
+                case ResourceUriType.PreviousPage:
+                    return Url.Link(nameof(GetAuthors),
+                        new 
+                        {
+                            pageNumber = resourceParameters.PageNumber - 1,
+                            pageSize = resourceParameters.PageSize,
+                            mainCategory = resourceParameters.MainCategory,
+                            searchQuery = resourceParameters.SearchQuery
+                        });
+                case ResourceUriType.NextPage:
+                    return Url.Link(nameof(GetAuthors),
+                        new
+                        {
+                            pageNumber = resourceParameters.PageNumber + 1,
+                            pageSize = resourceParameters.PageSize,
+                            mainCategory = resourceParameters.MainCategory,
+                            searchQuery = resourceParameters.SearchQuery
+                        });
+                default:
+                    return Url.Link(nameof(GetAuthors),
+                        new
+                        {
+                            pageNumber = resourceParameters.PageNumber,
+                            pageSize = resourceParameters.PageSize,
+                            mainCategory = resourceParameters.MainCategory,
+                            searchQuery = resourceParameters.SearchQuery
+                        });
+            }
         }
     }
 }
